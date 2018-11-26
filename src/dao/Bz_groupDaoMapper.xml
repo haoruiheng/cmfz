@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="dao.Bz_groupDao"><!-- 实现的接口 -->
+	<!-- 查询结果手动映射 -->
+	<resultMap type="entity.bz_group" id="bz_group">
+		<!-- 主属性字段名-实体名 -->
+		<id column="groupId" property="groupId"/>		
+		<!-- 普通属性 字段-属性-->
+		<result column="groupName" property="groupName"/>
+		<result column="createTime" property="createTime"/>
+		<!-- 1.班级关系属性(普通对象) -->
+		<association property="bz_clazz" javaType="entity.bz_clazz">
+			<!-- 主键 -->
+			<id column="clzId" property="clzId"/>
+			<!-- 普通属性 -->
+			<result column="clzName" property="clzName"/>
+			<!-- 2.标签关系属性(普通对象) -->
+			<association property="tagId" javaType="entity.bz_tag">
+				<!-- 主键 -->
+				<id column="tagId" property="tagId"/>
+				<!-- 普通属性 -->
+				<result column="tagName" property="tagName"/>
+				<result column="tagType" property="tagType"/>
+			</association>
+		</association>
+	</resultMap>
+	<!-- 分页查询 -->
+	<select id="selectGroup" resultMap="bz_group">
+	<![CDATA[
+		select tb2.*
+			from (
+				select tb1.*,rownum rn
+				from (
+					select g.groupId,g.groupName,g.createTime,c.clzId,c.clzName,c.tagId,c.tagName,c.tagType from bz_group g
+					join (	select n.clzId,n.clzName,n.createTime,y.tagId,y.tagName,y.tagType from bz_clazz n
+							join bz_tag y  
+							on n.tagId = y.tagId
+	 					)c 
+					on g.bz_clazz = c.clzId order by g.groupId desc
+				) tb1
+				where rownum<= #{page}*#{rows}
+			) tb2
+		where rn>(#{page}-1)*#{rows}
+	]]>  
+	</select>
+	<!-- 总行数 -->
+	<select id="sumAll" resultType="int">
+		select count(*) from bz_group	
+	</select>
+	
+	<!-- 添加数据  -->
+	<insert id="insertGroup" parameterType="entity.bz_group">
+		<!-- 序列id-->
+		<!-- resultType 属性类型  keyProperty 属性名    order 执行顺序  -->
+		<selectKey resultType="int" keyProperty="groupId" order="BEFORE">
+			select bz_group_seq.NEXTVAL from dual
+		</selectKey>
+		insert into bz_group  values(#{groupId},#{groupName},sysdate,#{bz_clazz.clzId})
+	</insert>
+	<!-- 查所有 -->
+	<select id="selectGroupAll" resultType="entity.bz_group" parameterType="int">
+		select groupId,groupName,createTime,bz_clazz from bz_group where bz_clazz=#{clazzId}
+	</select>
+</mapper>

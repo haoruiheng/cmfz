@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="dao.Bz_cityDao"><!-- 实现的接口 -->
+	
+	
+	<!-- 分页查询 -->
+	<select id="selectPagingAll" resultType="entity.bz_city">
+	<![CDATA[
+		select tb2.*
+			from (
+				select tb1.*,rownum rn
+				from (
+					select cityId,cityName,createTime from bz_city
+					order by cityId desc
+				) tb1
+				where rownum<= #{page}*#{rows}
+			) tb2
+		where rn>(#{page}-1)*#{rows}
+	]]>  
+	</select>
+	<!-- 总行数 -->
+	<select id="sumAll" resultType="int">
+		select count(*) from bz_city	
+	</select>
+	
+	<!-- 添加数据  -->
+	<insert id="insertCity" parameterType="entity.bz_city">
+		<!-- 序列id-->
+		<!-- resultType 属性类型  keyProperty 属性名    order 执行顺序  -->
+		<selectKey resultType="int" keyProperty="cityId" order="BEFORE">
+			select bz_city_seq.NEXTVAL from dual
+		</selectKey>
+			insert into bz_city values(#{cityId},#{cityName},#{createTime})
+	</insert>
+	<!-- 查所有 -->
+	<select id="selectCityAll" resultType="entity.bz_city">
+		select cityId,cityName,createTime from bz_city
+	</select>
+</mapper>

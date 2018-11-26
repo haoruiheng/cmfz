@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="dao.Bz_clazzDao"><!-- 实现的接口 -->
+	<!-- 查询结果手动映射 -->
+	<resultMap type="entity.bz_clazz" id="bz_clazz">
+		<!-- 主属性字段名-实体名 -->
+		<id column="clzId" property="clzId"/>		
+		<!-- 普通属性 字段-属性-->
+		<result column="clzName" property="clzName"/>
+		<result column="createTime" property="createTime"/>
+		<!-- 1.关系属性(普通对象) -->
+		<association property="tagId" javaType="entity.bz_tag">
+			<id column="tagId" property="tagId"/>
+			<!-- 普通属性 -->
+			<result column="tagName" property="tagName"/>
+			<result column="tagType" property="tagType"/>
+		</association>
+	</resultMap>
+	<!-- 分页查询 -->
+	<select id="selectClazz" resultMap="bz_clazz">
+	<![CDATA[
+		select tb2.*
+			from (
+				select tb1.*,rownum rn
+				from (
+					select n.clzId,n.clzName,n.createTime,y.tagId,y.tagName,y.tagType from bz_clazz n
+					join bz_tag y  
+					on n.tagId = y.tagId order by n.clzId desc
+				) tb1
+				where rownum<= #{page}*#{rows}
+			) tb2
+		where rn>(#{page}-1)*#{rows}
+	]]>  
+	</select>
+	<!-- 总行数 -->
+	<select id="sumAll" resultType="int">
+			select count(*) from bz_clazz	
+	</select>
+	
+	<!-- 添加数据  -->
+	<insert id="incertClazz" parameterType="entity.bz_clazz">
+		<!-- 序列id-->
+		<!-- resultType 属性类型  keyProperty 属性名    order 执行顺序  -->
+		<selectKey resultType="int" keyProperty="clzId" order="BEFORE">
+			select bz_clazz_seq.NEXTVAL from dual
+		</selectKey>
+			insert into bz_clazz  values(#{clzId},#{clzName},#{createTime},#{tagId.tagType})
+	</insert>
+	<!-- 查所有 -->
+	<select id="selectClazzAll" resultType="entity.bz_clazz" >
+			select clzId,clzName,createTime,tagId from bz_clazz
+	</select>
+</mapper>

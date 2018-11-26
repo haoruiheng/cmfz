@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="dao.Bz_tagDao"><!-- 实现的接口 -->
+	
+	
+	<!-- 分页查询 -->
+	<select id="selectPagingAll" resultType="entity.bz_tag">
+	<![CDATA[
+		select tb2.*
+			from (
+				select tb1.*,rownum rn
+				from (
+					select tagId,tagName,tagType,createTime from bz_tag
+					order by tagId desc
+				) tb1
+				where rownum<= #{page}*#{rows}
+			) tb2
+		where rn>(#{page}-1)*#{rows}
+	]]>  
+	</select>
+	<!-- 总行数 -->
+	<select id="sumAll" resultType="int">
+		select count(*) from bz_tag	
+	</select>
+	
+	<!-- 添加数据  -->
+	<insert id="insertTag" parameterType="entity.bz_tag">
+		<!-- 序列id-->
+		<!-- resultType 属性类型  keyProperty 属性名    order 执行顺序  -->
+		<selectKey resultType="int" keyProperty="tagId" order="BEFORE">
+			select bz_tag_seq.NEXTVAL from dual
+		</selectKey>
+			insert into bz_tag  values(#{tagId},#{tagName},#{tagType},sysdate)
+	</insert>
+	<!-- 查询数据 根据-K -->
+	<select id="selectTagAll" resultType="entity.bz_tag" parameterType="int">
+		select tagId,tagName,tagType,createTime from bz_tag where tagType=#{tagType}
+	</select>
+</mapper>
